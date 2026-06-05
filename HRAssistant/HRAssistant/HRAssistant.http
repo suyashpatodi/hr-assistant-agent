@@ -1,0 +1,6 @@
+@HRAssistant_HostAddress = http://localhost:5189
+
+GET {{HRAssistant_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

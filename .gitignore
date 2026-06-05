@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/HRAssistant/.vs/HRAssistant/CopilotIndices/17.14.1204.46620
+/HRAssistant/.vs/HRAssistant
+/HRAssistant/HRAssistant/bin/Debug/net9.0
+/HRAssistant/HRAssistant/obj
+/HRAssistant/HRAssistant/appsettings.Development.json
+/HRAssistant/.vs/ProjectEvaluation

@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36511.14 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HRAssistant", "HRAssistant\HRAssistant.csproj", "{506FE863-463C-4364-B200-28DB8458DCD3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{506FE863-463C-4364-B200-28DB8458DCD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{506FE863-463C-4364-B200-28DB8458DCD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{506FE863-463C-4364-B200-28DB8458DCD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{506FE863-463C-4364-B200-28DB8458DCD3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2B7E830F-6C62-426C-AC55-9E8D6988BFAE}
+	EndGlobalSection
+EndGlobal
