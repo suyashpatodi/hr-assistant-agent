@@ -8,3 +8,7 @@
 /HRAssistant/HRAssistant/obj
 /HRAssistant/HRAssistant/appsettings.Development.json
 /HRAssistant/.vs/ProjectEvaluation
+/HRAssistant/HRAssistant.AppHost/bin/Debug/net9.0
+/HRAssistant/HRAssistant.AppHost/obj
+/HRAssistant/HRAssistant.ServiceDefaults/obj
+/HRAssistant/HRAssistant.ServiceDefaults/bin/Debug/net9.0

@@ -1,39 +1,37 @@
-﻿using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
+﻿using Microsoft.Extensions.AI;
 
 namespace HRAssistant.Services
 {
     public class AgentService : IAgentService
     {
-        private readonly Kernel _kernel;
-        private readonly PromptExecutionSettings _settings;
-        private readonly IChatCompletionService _chatService;
-
-        public AgentService(IChatCompletionService chatService, Kernel kernel, PromptExecutionSettings settings)
+        private readonly IChatClient _chatClient;
+        private readonly ChatOptions _settings;
+        public AgentService(IChatClient chatClient, ChatOptions settings)
         {
-            _kernel = kernel;
+            _chatClient = chatClient;
             _settings = settings;
-            _chatService = _kernel.GetRequiredService<IChatCompletionService>();
         }
         public async IAsyncEnumerable<string> GetStreamingResponse(string message)
         {
-            var history = new ChatHistory();
+            var chatHistory = new List<ChatMessage>
+            {
+                new ChatMessage(ChatRole.System, "You are an HR manager"),
+                new ChatMessage(ChatRole.User, message)
+            };
 
-            history.AddUserMessage(message);
-
-            var response = _chatService.GetStreamingChatMessageContentsAsync(history, _settings, _kernel);
+            var response = _chatClient.GetStreamingResponseAsync(chatHistory, _settings);
             string fullResponse = string.Empty;
 
             await foreach (var chunk in response)
             {
-                if (chunk.Content != null)
+                if (chunk.Text != null)
                 {
-                    fullResponse += chunk.Content;
-                    yield return chunk.Content;
+                    fullResponse += chunk.Text;
+                    yield return chunk.Text;
                 }
             }
 
-            history.AddAssistantMessage(fullResponse);
+            chatHistory.Add(new ChatMessage(ChatRole.Assistant, fullResponse));
         }
     }
 }
