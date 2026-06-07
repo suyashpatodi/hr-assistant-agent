@@ -2,6 +2,6 @@
 {
     public interface IAgentService
     {
-        IAsyncEnumerable<string> GetStreamingResponse(string message);
+        IAsyncEnumerable<string> GetChatResponse(string message, CancellationToken cancellationToken);
     }
 }

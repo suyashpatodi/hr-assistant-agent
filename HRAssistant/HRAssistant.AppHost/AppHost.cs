@@ -1,19 +1,22 @@
+using Aspire.Hosting.GitHub;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 var redis = builder.AddRedis("redis");
+
+var githubModels = builder.AddGitHubModel("ai-models", GitHubModel.OpenAI.OpenAIGpt41Mini);
 
 var ollama = builder.AddOllama("ollama", 11434)
     .WithDataVolume()
     .WithLifetime(ContainerLifetime.Persistent)
     .WithOpenWebUI();
 
-var llama = ollama.AddModel("ollama-llama3-2", "llama3.2");
 var embedding = ollama.AddModel("ollama-all-minilm", "all-minilm");
 
 builder.AddProject<Projects.HRAssistant>("hrassistant")
-    .WithReference(llama)
+    .WithReference(githubModels)
     .WithReference(embedding)
-    .WaitFor(llama)
+    .WaitFor(githubModels)
     .WaitFor(embedding);
 
 builder.Build().Run();

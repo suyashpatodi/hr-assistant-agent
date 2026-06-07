@@ -21,7 +21,7 @@ namespace HRAssistant.Controllers
             Response.Headers.Append("Cache-Control", "no-cache");
             Response.Headers.Append("Connection", "keep-alive");
 
-            var streamingResult = _agentService.GetStreamingResponse(message);
+            var streamingResult = _agentService.GetChatResponse(message, ct);
 
             await foreach (var chunk in streamingResult.WithCancellation(ct))
             {

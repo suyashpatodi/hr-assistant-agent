@@ -1,37 +1,89 @@
-﻿using Microsoft.Extensions.AI;
+﻿using Microsoft.SemanticKernel.Agents;
+using Microsoft.SemanticKernel.Agents.Chat;
+using Microsoft.SemanticKernel.ChatCompletion;
+using System.Runtime.CompilerServices;
 
 namespace HRAssistant.Services
 {
     public class AgentService : IAgentService
     {
-        private readonly IChatClient _chatClient;
-        private readonly ChatOptions _settings;
-        public AgentService(IChatClient chatClient, ChatOptions settings)
+        private readonly Kernel _kernel;
+        public AgentService(Kernel kernel)
         {
-            _chatClient = chatClient;
-            _settings = settings;
+            _kernel = kernel;
         }
-        public async IAsyncEnumerable<string> GetStreamingResponse(string message)
+
+        private AgentGroupChat BuildGroupChat()
         {
-            var chatHistory = new List<ChatMessage>
+            var executionSettings = new PromptExecutionSettings()
             {
-                new ChatMessage(ChatRole.System, "You are an HR manager"),
-                new ChatMessage(ChatRole.User, message)
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
             };
 
-            var response = _chatClient.GetStreamingResponseAsync(chatHistory, _settings);
-            string fullResponse = string.Empty;
-
-            await foreach (var chunk in response)
+            var sqlAgent = new ChatCompletionAgent
             {
-                if (chunk.Text != null)
-                {
-                    fullResponse += chunk.Text;
-                    yield return chunk.Text;
-                }
-            }
+                Name = "SqlAgent",
+                Instructions = "Handle employee data and leave balance queries only. Return employee/user info and leave details",
+                Kernel = _kernel,
+                Arguments = new KernelArguments(executionSettings)
+            };
 
-            chatHistory.Add(new ChatMessage(ChatRole.Assistant, fullResponse));
+            var policyAgent = new ChatCompletionAgent
+            {
+                Name = "PolicyAgent",
+                Instructions = "Handle HR policy questions only",
+                Kernel = _kernel,
+                Arguments = new KernelArguments(executionSettings)
+            };
+
+            var actionAgent = new ChatCompletionAgent
+            {
+                Name = "ActionAgent",
+                Instructions = "Handle leave applications. Always confirm details before applying.",
+                Kernel = _kernel,
+                Arguments = new KernelArguments(executionSettings)
+            };
+
+            KernelFunction selectionFunction = KernelFunctionFactory.CreateFromPrompt("""
+                    Given this HR message, which agent should handle it?
+                    - SqlAgent: leave balances, history, employee data
+                    - PolicyAgent: HR rules, WFH policy, entitlements
+                    - ActionAgent: applying leave, submitting requests
+                    Message: {{$lastMessage}}
+                    Respond with agent name only. No explanation.
+                """);
+
+            KernelFunction terminationFunction = KernelFunctionFactory.CreateFromPrompt("""
+                    Has the HR request been fully answered?
+                    Last response: {{$lastMessage}}
+                    Reply yes or no only.
+                """);
+
+            return new AgentGroupChat(sqlAgent, policyAgent, actionAgent)
+            {
+                ExecutionSettings = new AgentGroupChatSettings
+                {
+                    SelectionStrategy = new KernelFunctionSelectionStrategy(selectionFunction, _kernel),
+                    TerminationStrategy = new KernelFunctionTerminationStrategy(terminationFunction, _kernel)
+                    {
+                        MaximumIterations = 3
+                    }
+                }
+            };
+        }
+
+        public async IAsyncEnumerable<string> GetChatResponse(string message, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var groupChat = BuildGroupChat();
+
+            groupChat.AddChatMessage(new ChatMessageContent(
+            AuthorRole.User, message));
+
+            await foreach (var response in groupChat.InvokeStreamingAsync(cancellationToken))
+            {
+                if (response.Content is not null)
+                    yield return response.Content;
+            }
         }
     }
 }
