@@ -1,22 +1,21 @@
-using Aspire.Hosting.GitHub;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
-var redis = builder.AddRedis("redis");
+var postgres = builder.AddPostgres("postgres")
+                      .WithPgAdmin()
+                      .WithDataVolume()
+                      .WithLifetime(ContainerLifetime.Persistent);
 
-var githubModels = builder.AddGitHubModel("ai-models", GitHubModel.OpenAI.OpenAIGpt41Mini);
+var database = postgres.AddDatabase("company");
 
-var ollama = builder.AddOllama("ollama", 11434)
-    .WithDataVolume()
-    .WithLifetime(ContainerLifetime.Persistent)
-    .WithOpenWebUI();
+var groqKey = builder.AddParameter("groq-apikey", secret: true);
 
-var embedding = ollama.AddModel("ollama-all-minilm", "all-minilm");
+var api = builder.AddProject<Projects.HRAssistant>("hrassistant")
+    .WithEnvironment("Groq__ApiKey", groqKey)
+    .WithReference(database)
+    .WaitFor(database);
 
-builder.AddProject<Projects.HRAssistant>("hrassistant")
-    .WithReference(githubModels)
-    .WithReference(embedding)
-    .WaitFor(githubModels)
-    .WaitFor(embedding);
+var frontend = builder.AddViteApp("hrassistantfrontend", "../HRAssistant.Frontend")
+    .WithReference(api)
+    .WaitFor(api);
 
 builder.Build().Run();

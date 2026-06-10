@@ -1,6 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
 
 namespace HRAssistant.Services

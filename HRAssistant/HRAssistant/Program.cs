@@ -1,11 +1,6 @@
-﻿using Azure.AI.Inference;
-using HRAssistant.Plugins;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Http.Resilience;
-using Microsoft.SemanticKernel.ChatCompletion;
+﻿using Microsoft.Extensions.Http.Resilience;
 
 var builder = WebApplication.CreateBuilder(args);
-
 builder.AddServiceDefaults();
 
 builder.Services.ConfigureHttpClientDefaults(http =>
@@ -19,54 +14,52 @@ builder.Services.ConfigureHttpClientDefaults(http =>
     });
 });
 
-// GitHub Models via Aspire — registers ChatCompletionsClient
-builder.AddAzureChatCompletionsClient("ai-models");
-
-// Bridge ChatCompletionsClient → IChatCompletionService for Semantic Kernel
-builder.Services.AddSingleton<IChatCompletionService>(sp =>
-{
-    var completionsClient = sp.GetRequiredService<ChatCompletionsClient>();
-    IChatClient chatClient = completionsClient.AsIChatClient("gpt-4o-mini");
-    return chatClient.AsChatCompletionService();
-});
-
-// Add services to the container.
+// OpenAI via Aspire — registers OpenAIClient
+builder.AddOllamaApiClient("gpt-model")
+       .AddChatClient()
+       .UseFunctionInvocation();
+builder.AddNpgsqlDbContext<EmployeeDbContext>("company");
 
 builder.Services.AddControllers();
-
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// Aspire wires these up from WithReference() in AppHost
-builder.AddOllamaApiClient("ollama-all-minilm").AddEmbeddingGenerator();
+builder.Services.AddScoped<PolicyEnquiry>();
+builder.Services.AddScoped<SqlEnquiry>();
+builder.Services.AddScoped<ExecuteAction>();
 
-builder.Services.AddSingleton<PolicyEnquiry>();
-builder.Services.AddSingleton<SqlEnquiry>();
-builder.Services.AddSingleton<ExecuteAction>();
+builder.Services.AddScoped<Kernel>(sp =>
+{
+    var apiKey = builder.Configuration["Groq:ApiKey"]!;
 
-builder.Services.AddKernel().Plugins
-    .AddFromType<SqlEnquiry>("SqlPlugin")
-    .AddFromType<PolicyEnquiry>("PolicyPlugin")
-    .AddFromType<ExecuteAction>("ExecutePlugin");
+    var kernelBuilder = Kernel.CreateBuilder();
+    kernelBuilder.AddOpenAIChatCompletion(
+        modelId: "llama-3.1-8b-instant",
+        apiKey: apiKey,
+        endpoint: new Uri("https://api.groq.com/openai/v1")
+    );
+
+    var kernel = kernelBuilder.Build();
+
+    kernel.Plugins.AddFromObject(sp.GetRequiredService<SqlEnquiry>(), "SqlPlugin");
+    kernel.Plugins.AddFromObject(sp.GetRequiredService<PolicyEnquiry>(), "PolicyPlugin");
+    kernel.Plugins.AddFromObject(sp.GetRequiredService<ExecuteAction>(), "ExecutePlugin");
+
+    return kernel;
+});
 
 builder.Services.AddInMemoryVectorStoreRecordCollection<string, DocumentChunk>("documents");
-
-builder.Services.AddTransient<IAgentService, AgentService>();
+builder.Services.AddScoped<IAgentService, AgentService>();
 
 var app = builder.Build();
-
 app.MapDefaultEndpoints();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseMigration();
     app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

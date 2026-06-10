@@ -1,4 +1,9 @@
-﻿global using HRAssistant.Helpers;
+﻿global using HRAssistant.Data;
+global using HRAssistant.Helpers;
 global using HRAssistant.Models;
+global using HRAssistant.Plugins;
 global using HRAssistant.Services;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.AI;
 global using Microsoft.SemanticKernel;
+global using Microsoft.SemanticKernel.ChatCompletion;
