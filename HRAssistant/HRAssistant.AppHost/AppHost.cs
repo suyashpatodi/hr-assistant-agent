@@ -1,5 +1,10 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
+var redis = builder.AddRedis("cache")
+                    .WithRedisInsight()
+                    .WithDataVolume()
+                    .WithLifetime(ContainerLifetime.Persistent); ;
+
 var postgres = builder.AddPostgres("postgres")
                       .WithPgAdmin()
                       .WithDataVolume()
@@ -7,11 +12,13 @@ var postgres = builder.AddPostgres("postgres")
 
 var database = postgres.AddDatabase("company");
 
-var groqKey = builder.AddParameter("groq-apikey", secret: true);
+var geminiKey = builder.AddParameter("gemini-apikey", secret: true);
 
 var api = builder.AddProject<Projects.HRAssistant>("hrassistant")
-    .WithEnvironment("Groq__ApiKey", groqKey)
+    .WithEnvironment("Gemini__ApiKey", geminiKey)
+    .WithReference(redis)
     .WithReference(database)
+    .WaitFor(redis)
     .WaitFor(database);
 
 var frontend = builder.AddViteApp("hrassistantfrontend", "../HRAssistant.Frontend")

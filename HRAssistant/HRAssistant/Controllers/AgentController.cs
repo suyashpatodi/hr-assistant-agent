@@ -13,15 +13,15 @@ namespace HRAssistant.Controllers
             _agentService = agentService;
         }
 
-        [HttpGet("stream")]
+        [HttpGet("stream/{key}")]
         [Produces("text/stream")]
-        public async Task StreamContent([FromQuery] string message, [EnumeratorCancellation] CancellationToken ct)
+        public async Task StreamContent([FromQuery] string message, [FromRoute] string key, [EnumeratorCancellation] CancellationToken ct)
         {
             Response.Headers.Append("Content-Type", "text/event-stream");
             Response.Headers.Append("Cache-Control", "no-cache");
             Response.Headers.Append("Connection", "keep-alive");
 
-            var streamingResult = _agentService.GetChatResponse(message, ct);
+            var streamingResult = _agentService.GetChatResponse(message, key, ct);
 
             await foreach (var chunk in streamingResult.WithCancellation(ct))
             {

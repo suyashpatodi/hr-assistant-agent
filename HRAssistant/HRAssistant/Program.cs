@@ -7,18 +7,16 @@ builder.Services.ConfigureHttpClientDefaults(http =>
 {
     http.AddStandardResilienceHandler().Configure(options =>
     {
-        options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(30);
-        options.AttemptTimeout.Timeout = TimeSpan.FromMinutes(15);
-        options.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(30);
-        options.Retry.MaxRetryAttempts = 1; // Never retry — slow LLM + retry = guaranteed timeout
+        options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
+        options.AttemptTimeout.Timeout = TimeSpan.FromMinutes(2);
+        options.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(5);
+        options.Retry.MaxRetryAttempts = 3;
+        options.Retry.Delay = TimeSpan.FromSeconds(2);
     });
 });
 
-// OpenAI via Aspire — registers OpenAIClient
-builder.AddOllamaApiClient("gpt-model")
-       .AddChatClient()
-       .UseFunctionInvocation();
 builder.AddNpgsqlDbContext<EmployeeDbContext>("company");
+builder.AddRedisDistributedCache(connectionName: "cache");
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -27,22 +25,24 @@ builder.Services.AddScoped<PolicyEnquiry>();
 builder.Services.AddScoped<SqlEnquiry>();
 builder.Services.AddScoped<ExecuteAction>();
 
+// Register the universal IChatClient pipeline targeting Gemini 2.5 Pro
 builder.Services.AddScoped<Kernel>(sp =>
 {
-    var apiKey = builder.Configuration["Groq:ApiKey"]!;
+    var apiKey = builder.Configuration["Gemini:ApiKey"]!;
 
     var kernelBuilder = Kernel.CreateBuilder();
-    kernelBuilder.AddOpenAIChatCompletion(
-        modelId: "llama-3.1-8b-instant",
-        apiKey: apiKey,
-        endpoint: new Uri("https://api.groq.com/openai/v1")
+
+    // Use the native Google AI Studio Connector
+    kernelBuilder.AddGoogleAIGeminiChatCompletion(
+        modelId: "gemini-2.5-flash",
+        apiKey: apiKey
     );
 
     var kernel = kernelBuilder.Build();
 
-    kernel.Plugins.AddFromObject(sp.GetRequiredService<SqlEnquiry>(), "SqlPlugin");
-    kernel.Plugins.AddFromObject(sp.GetRequiredService<PolicyEnquiry>(), "PolicyPlugin");
-    kernel.Plugins.AddFromObject(sp.GetRequiredService<ExecuteAction>(), "ExecutePlugin");
+    kernel.Plugins.AddFromObject(sp.GetRequiredService<SqlEnquiry>(), "SqlEnquiry");
+    kernel.Plugins.AddFromObject(sp.GetRequiredService<PolicyEnquiry>(), "PolicyEnquiry");
+    kernel.Plugins.AddFromObject(sp.GetRequiredService<ExecuteAction>(), "ExecuteAction");
 
     return kernel;
 });

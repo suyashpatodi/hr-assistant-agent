@@ -12,6 +12,7 @@
     <PackageReference Include="Aspire.Azure.AI.Inference" Version="13.4.2-preview.1.26303.6" />
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.4.2" />
     <PackageReference Include="Aspire.OpenAI" Version="13.4.3-preview.1.26305.13" />
+    <PackageReference Include="Aspire.StackExchange.Redis.DistributedCaching" Version="13.4.3" />
     <PackageReference Include="CommunityToolkit.Aspire.OllamaSharp" Version="13.4.0" />
 	<PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
@@ -25,10 +26,12 @@
 	  </PackageReference>
 	  <PackageReference Include="Microsoft.Extensions.AI" Version="10.7.0" />
     <PackageReference Include="Microsoft.Extensions.AI.AzureAIInference" Version="10.0.0-preview.1.25559.3" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.7.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.77.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.77.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureAIInference" Version="1.77.0-beta" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Google" Version="1.77.0-alpha" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.74.0-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Ollama" Version="1.77.0-alpha" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.77.0" />

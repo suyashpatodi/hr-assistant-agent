@@ -120,7 +120,7 @@ export default function App() {
         abortRef.current = new AbortController()
 
         try {
-            const url = `/agent/stream?message=${encodeURIComponent(userText)}`
+            const url = `/agent/stream/123456789?message=${encodeURIComponent(userText)}`
             const res = await fetch(url, {
                 signal: abortRef.current.signal,
                 headers: { Accept: 'text/event-stream' },
