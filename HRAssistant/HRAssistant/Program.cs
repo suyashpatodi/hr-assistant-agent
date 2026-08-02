@@ -47,8 +47,10 @@ builder.Services.AddScoped<Kernel>(sp =>
     return kernel;
 });
 
+builder.AddOllamaApiClient("ollama-all-minilm").AddEmbeddingGenerator();
 builder.Services.AddInMemoryVectorStoreRecordCollection<string, DocumentChunk>("documents");
 builder.Services.AddScoped<IAgentService, AgentService>();
+builder.Services.AddScoped<IDataService, DataService>();
 
 var app = builder.Build();
 app.MapDefaultEndpoints();

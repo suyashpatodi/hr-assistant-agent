@@ -69,12 +69,8 @@ public class AgentService : IAgentService
         string fullAssistantResponse = string.Empty;
 
         foreach (var result in results)
-        {
             if (!string.IsNullOrEmpty(result.Content))
-            {
                 fullAssistantResponse += result.Content;
-            }
-        }
 
         history.AddAssistantMessage(fullAssistantResponse);
 

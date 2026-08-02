@@ -1,6 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.Extensions.VectorData;
+using UglyToad.PdfPig;
 
 namespace HRAssistant.Services
 {
@@ -15,49 +16,107 @@ namespace HRAssistant.Services
             _collection = collection;
         }
 
-        public async Task IngestDocumentAsync(string filePath)
+        public async Task IngestDocumentAsync(IFormFile file)
         {
-            var text = filePath.EndsWith(".docx")
-                        ? ExtractTextFromDocx(filePath)
-                        : await File.ReadAllTextAsync(filePath);
+            List<string> paragraphs;
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
-            var fileName = Path.GetFileName(filePath);
-            var chunks = ChunkText(text, chunkSize: 80);
+            using var stream = file.OpenReadStream();
+            paragraphs = extension switch
+            {
+                ".docx" => ExtractParagraphsFromDocx(stream),
+                ".pdf" => ExtractParagraphsFromPdf(stream),
+                _ => throw new NotSupportedException("Unsupported file type.")
+            };
+
+            var chunks = MergeParagraphs(paragraphs);
 
             await _collection.EnsureCollectionExistsAsync();
 
             foreach (var chunk in chunks)
             {
                 var embedding = await _embeddingGenerator.GenerateVectorAsync(chunk);
-                var document = new DocumentChunk()
-                {
-                    Content = chunk,
-                    FileName = fileName,
-                    Embedding = embedding
-                };
 
-                await _collection.UpsertAsync(document);
+                await _collection.UpsertAsync(new DocumentChunk
+                {
+                    FileName = file.FileName,
+                    Content = chunk,
+                    Embedding = embedding
+                });
             }
         }
 
-        private static List<string> ChunkText(string text, int chunkSize)
+        private List<string> ExtractParagraphsFromDocx(Stream stream)
+        {
+            using var document = WordprocessingDocument.Open(stream, false);
+
+            return document.MainDocumentPart!
+                .Document!
+                .Body!
+                .Elements<Paragraph>()
+                .Select(p => string.Join(" ",
+                    p.Descendants<Text>().Select(t => t.Text)))
+                .Select(p => p.Trim())
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .ToList();
+        }
+
+        private List<string> ExtractParagraphsFromPdf(Stream stream)
+        {
+            using var document = PdfDocument.Open(stream);
+
+            var paragraphs = new List<string>();
+
+            foreach (var page in document.GetPages())
+            {
+                var lines = page.Text.Split(
+                    new[] { "\r\n", "\n" },
+                    StringSplitOptions.RemoveEmptyEntries);
+
+                paragraphs.AddRange(
+                    lines.Select(l => l.Trim())
+                         .Where(l => !string.IsNullOrWhiteSpace(l)));
+            }
+
+            return paragraphs;
+        }
+
+        private List<string> MergeParagraphs(List<string> paragraphs, int targetWords = 200)
         {
             var chunks = new List<string>();
-            var words = text.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
-            for (int i = 0; i < words.Length; i += chunkSize)
+            var currentChunk = new List<string>();
+            var currentWordCount = 0;
+
+            foreach (var paragraph in paragraphs)
             {
-                chunks.Add(string.Join(' ', words.Skip(i).Take(chunkSize)));
+                int words = paragraph.Split(
+                    ' ',
+                    StringSplitOptions.RemoveEmptyEntries).Length;
+
+                if (currentWordCount > 0 &&
+                    currentWordCount + words > targetWords)
+                {
+                    chunks.Add(string.Join(
+                        Environment.NewLine + Environment.NewLine,
+                        currentChunk));
+
+                    currentChunk.Clear();
+                    currentWordCount = 0;
+                }
+
+                currentChunk.Add(paragraph);
+                currentWordCount += words;
+            }
+
+            if (currentChunk.Count > 0)
+            {
+                chunks.Add(string.Join(
+                    Environment.NewLine + Environment.NewLine,
+                    currentChunk));
             }
 
             return chunks;
-        }
-
-        private static string ExtractTextFromDocx(string filePath)
-        {
-            using var doc = WordprocessingDocument.Open(filePath, false);
-            var body = doc.MainDocumentPart.Document.Body;
-            return string.Join(" ", body.Descendants<Text>().Select(t => t.Text));
         }
     }
 }

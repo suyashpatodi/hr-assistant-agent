@@ -2,6 +2,6 @@
 {
     public interface IDataService
     {
-        Task IngestDocumentAsync(string filePath);
+        Task IngestDocumentAsync(IFormFile file);
     }
 }

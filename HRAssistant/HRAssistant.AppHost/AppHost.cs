@@ -12,12 +12,20 @@ var postgres = builder.AddPostgres("postgres")
 
 var database = postgres.AddDatabase("company");
 
+var ollama = builder.AddOllama("ollama", 11434)
+                    .WithDataVolume()
+                    .WithLifetime(ContainerLifetime.Persistent)
+                    .WithOpenWebUI();
+var embedding = ollama.AddModel("all-minilm");
+
 var geminiKey = builder.AddParameter("gemini-apikey", secret: true);
 
 var api = builder.AddProject<Projects.HRAssistant>("hrassistant")
     .WithEnvironment("Gemini__ApiKey", geminiKey)
     .WithReference(redis)
+    .WithReference(embedding)
     .WithReference(database)
+    .WaitFor(embedding)
     .WaitFor(redis)
     .WaitFor(database);
 

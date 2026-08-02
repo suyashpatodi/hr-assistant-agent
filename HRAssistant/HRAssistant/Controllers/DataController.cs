@@ -12,13 +12,19 @@ namespace HRAssistant.Controllers
             _dataService = dataService;
         }
 
-        [HttpGet("ingest")]
-        public async Task<IActionResult> InjestData([FromQuery] string filePath)
+        [HttpPost("ingest")]
+        public async Task<IActionResult> InjestData(IFormFile file)
         {
-            if (!System.IO.File.Exists(filePath))
-                return BadRequest("File not found.");
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
 
-            await _dataService.IngestDocumentAsync(filePath);
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (extension != ".docx" && extension != ".pdf")
+                return BadRequest("Only .docx and .pdf files are supported.");
+
+            await _dataService.IngestDocumentAsync(file);
+
             return Ok("Document ingested successfully.");
         }
     }

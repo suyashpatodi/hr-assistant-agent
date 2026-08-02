@@ -38,6 +38,7 @@
 	<PackageReference Include="Microsoft.Agents.AI" Version="1.6.2" />
 	<PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.6.2" />
 	<PackageReference Include="Microsoft.Agents.AI.Workflows" Version="1.6.2" />
+	<PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
   </ItemGroup>
 
   <ItemGroup>
