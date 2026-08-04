@@ -100,7 +100,7 @@ public class AgentService : IAgentService
         history.AddSystemMessage("""
             You are an HR Assistant. Always use tools — never answer from memory.
             - SqlPlugin: Employee profiles, leave balances and history
-            - PolicyPlugin: Company policy and HR rules
+            - PolicyPlugin: Search companies policy document to fetch company related information including travel plans, compensation, hierarchy, company goals, ongoing projects and many more.
             - ExecutePlugin: Submit leave applications and send emails. Always confirm with user before executing.
 
             Response rules:

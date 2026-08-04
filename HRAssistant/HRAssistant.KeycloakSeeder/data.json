@@ -1,0 +1,34 @@
+{
+  "Realm" :  "hrassistant",
+  "Roles": [
+    "Admin",
+    "Manager",
+    "Employee"
+  ],
+  "Users": [
+    {
+      "Username": "mukeshambani",
+      "Email": "mukeshambani@gmail.com",
+      "Firstname": "Mukesh",
+      "Lastname": "Ambani",
+      "Password": "mukeshambani123!",
+      "Role": "Manager"
+    },
+    {
+      "Username": "johndoe",
+      "Email": "johndoe@gmail.com",
+      "Firstname": "John",
+      "Lastname": "Doe",
+      "Password": "johndoe123!",
+      "Role": "Employee"
+    },
+    {
+      "Username": "janedoe",
+      "Email": "janedoe@gmail.com",
+      "Firstname": "Jane",
+      "Lastname": "Doe",
+      "Password": "janedoe123!",
+      "Role": "Employee"
+    }
+  ]
+}

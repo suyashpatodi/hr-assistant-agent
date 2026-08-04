@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HRAssistant.ServiceDefaults
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "HRAssitant.Frontend", "HRAssistant.Frontend\HRAssitant.Frontend.esproj", "{BFE6F675-CFDF-2BA5-6279-3997B0F63B51}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HRAssistant.KeycloakSeeder", "HRAssistant.KeycloakSeeder\HRAssistant.KeycloakSeeder.csproj", "{BFE72999-164E-4752-989D-AA566AE9264C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{BFE6F675-CFDF-2BA5-6279-3997B0F63B51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BFE6F675-CFDF-2BA5-6279-3997B0F63B51}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BFE6F675-CFDF-2BA5-6279-3997B0F63B51}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{BFE72999-164E-4752-989D-AA566AE9264C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFE72999-164E-4752-989D-AA566AE9264C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFE72999-164E-4752-989D-AA566AE9264C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFE72999-164E-4752-989D-AA566AE9264C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

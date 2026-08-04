@@ -13,3 +13,5 @@
 /HRAssistant/HRAssistant.ServiceDefaults/obj
 /HRAssistant/HRAssistant.ServiceDefaults/bin/Debug/net9.0
 /HRAssistant/HRAssistant.Frontend/obj/Debug
+/HRAssistant/HRAssistant.KeycloakSeeder/bin/Debug/net9.0
+/HRAssistant/HRAssistant.KeycloakSeeder/obj
