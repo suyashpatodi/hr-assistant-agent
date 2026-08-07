@@ -9,11 +9,25 @@ namespace HRAssistant.Services
     {
         private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
         private readonly VectorStoreCollection<string, DocumentChunk> _collection;
+        private readonly EmployeeDbContext _context;
 
-        public DataService(IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator, VectorStoreCollection<string, DocumentChunk> collection)
+        public DataService(IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
+                           VectorStoreCollection<string, DocumentChunk> collection,
+                           EmployeeDbContext context)
         {
             _embeddingGenerator = embeddingGenerator;
             _collection = collection;
+            _context = context;
+        }
+
+        public async Task<Employee?> GetEmployeeData(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return null;
+
+            return await _context.Employees
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Email == email);
         }
 
         public async Task IngestDocumentAsync(IFormFile file)
@@ -46,6 +60,7 @@ namespace HRAssistant.Services
             }
         }
 
+        #region Helper Methods
         private List<string> ExtractParagraphsFromDocx(Stream stream)
         {
             using var document = WordprocessingDocument.Open(stream, false);
@@ -118,5 +133,6 @@ namespace HRAssistant.Services
 
             return chunks;
         }
+        #endregion
     }
 }

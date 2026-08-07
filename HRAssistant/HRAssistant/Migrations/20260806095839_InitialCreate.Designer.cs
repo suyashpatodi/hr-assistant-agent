@@ -9,10 +9,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace HRAssistant.Data.Migrations
+namespace HRAssistant.Migrations
 {
     [DbContext(typeof(EmployeeDbContext))]
-    [Migration("20260608100308_InitialCreate")]
+    [Migration("20260806095839_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -40,9 +40,16 @@ namespace HRAssistant.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -63,6 +70,9 @@ namespace HRAssistant.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("Days")
+                        .HasColumnType("integer");
+
                     b.Property<int>("EmployeeId")
                         .HasColumnType("integer");
 
@@ -72,6 +82,9 @@ namespace HRAssistant.Data.Migrations
                     b.Property<string>("Reason")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("To")
                         .HasColumnType("timestamp with time zone");
@@ -83,6 +96,35 @@ namespace HRAssistant.Data.Migrations
                     b.ToTable("Leaves");
                 });
 
+            modelBuilder.Entity("HRAssistant.Models.ManagerEmployee", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ManagerId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("ManagerId");
+
+                    b.ToTable("ManagerEmployee");
+                });
+
             modelBuilder.Entity("HRAssistant.Models.Leaves", b =>
                 {
                     b.HasOne("HRAssistant.Models.Employee", "Employee")
@@ -92,6 +134,25 @@ namespace HRAssistant.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("HRAssistant.Models.ManagerEmployee", b =>
+                {
+                    b.HasOne("HRAssistant.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HRAssistant.Models.Employee", "Manager")
+                        .WithMany()
+                        .HasForeignKey("ManagerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Manager");
                 });
 
             modelBuilder.Entity("HRAssistant.Models.Employee", b =>

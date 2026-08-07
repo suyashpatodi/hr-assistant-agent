@@ -5,10 +5,23 @@ var redis = builder.AddRedis("cache")
     .WithDataVolume()
     .WithLifetime(ContainerLifetime.Persistent);
 
+#region keycloak setup
 var password = builder.AddParameter("keycloak-password", secret: true);
 var username = builder.AddParameter("keycloak-username", secret: true);
 
-var keycloak = builder.AddKeycloak("keycloak", adminUsername: username, adminPassword: password);
+var keycloak = builder.AddKeycloak("keycloak",
+                                    port: 8080,
+                                    adminUsername: username,
+                                    adminPassword: password)
+                                    .WithDataVolume()
+                                    .WithLifetime(ContainerLifetime.Persistent);
+
+var keycloakSeeder = builder.AddProject<Projects.HRAssistant_KeycloakSeeder>("hrassistant-keycloakseeder")
+    .WithReference(keycloak)
+    .WithEnvironment("Parameters:keycloak-username", username)
+    .WithEnvironment("Parameters:keycloak-password", password)
+    .WaitFor(keycloak);
+#endregion
 
 #region database setup
 var postgres = builder.AddPostgres("postgres")
@@ -30,12 +43,7 @@ var embedding = ollama.AddModel("all-minilm");
 var geminiKey = builder.AddParameter("gemini-apikey", secret: true);
 #endregion
 
-var keycloakSeeder = builder.AddProject<Projects.HRAssistant_KeycloakSeeder>("hrassistant-keycloakseeder")
-    .WithReference(keycloak)
-    .WithEnvironment("Parameters:keycloak-username", username)
-    .WithEnvironment("Parameters:keycloak-password", password)
-    .WaitFor(keycloak);
-
+#region reference
 var api = builder.AddProject<Projects.HRAssistant>("hrassistant")
     .WithEnvironment("Gemini__ApiKey", geminiKey)
     .WithReference(redis)
@@ -49,7 +57,12 @@ var api = builder.AddProject<Projects.HRAssistant>("hrassistant")
     .WaitFor(database);
 
 var frontend = builder.AddViteApp("hrassistantfrontend", "../HRAssistant.Frontend")
+    .WithEnvironment("VITE_KEYCLOAK_URL", keycloak.GetEndpoint("http"))
+    .WithHttpEndpoint(port: 5173)
     .WithReference(api)
+    .WithReference(keycloak)
+    .WaitFor(keycloak)
     .WaitFor(api);
+#endregion
 
 builder.Build().Run();

@@ -72,6 +72,38 @@ public class KeycloakService(HttpClient client)
         return results;
     }
 
+    public async Task<bool> CreateClientApp(string clientId, string realm, string token)
+    {
+        var endpoint = $"admin/realms/{realm}/clients";
+
+        var clientPayload = new
+        {
+            clientId = clientId,
+            enabled = true,
+            publicClient = true,
+            standardFlowEnabled = true,        // REQUIRED for PKCE Redirect Flow
+            directAccessGrantsEnabled = true, // Optional fallback for direct logins
+            protocol = "openid-connect",
+
+            // MUST match the Aspire frontend port (http://localhost:5173)
+            redirectUris = new[]
+            {
+            "http://localhost:5173/*",
+            "http://localhost:5173"
+        },
+
+            // CORS origins for browser fetch calls
+            webOrigins = new[]
+            {
+            "http://localhost:5173"
+        }
+        };
+
+        using var response = await PostWithTokenAsync(endpoint, clientPayload, token);
+        return response.StatusCode == System.Net.HttpStatusCode.Created ||
+               response.StatusCode == System.Net.HttpStatusCode.Conflict;
+    }
+
     public async Task<List<UserResult>> CreateUsers(List<UserSeed> users, string realm, string token)
     {
         var results = new List<UserResult>();

@@ -3,16 +3,12 @@
     public class Employee
     {
         public int Id { get; set; }
-        public string Name { get; set; } = default!;
+        public string FirstName { get; set; } = default!;
+        public string LastName { get; set; } = default!;
+        public Roles Role { get; set; } = default!;
         public string Email { get; set; } = default!;
-        public Status Status { get; set; }
+        public EmployeeStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public List<Leaves> Leaves { get; set; } = default!;
-    }
-
-    public enum Status
-    {
-        Inactive = 0,
-        Active = 1
     }
 }

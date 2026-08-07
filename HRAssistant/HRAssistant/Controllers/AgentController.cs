@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Runtime.CompilerServices;
 
@@ -5,7 +6,7 @@ namespace HRAssistant.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AgentController : ControllerBase
+    public class AgentController : BaseController
     {
         private readonly IAgentService _agentService;
         public AgentController(IAgentService agentService)
@@ -13,15 +14,17 @@ namespace HRAssistant.Controllers
             _agentService = agentService;
         }
 
-        [HttpGet("stream/{key}")]
+        [HttpGet("stream")]
         [Produces("text/stream")]
-        public async Task StreamContent([FromQuery] string message, [FromRoute] string key, [EnumeratorCancellation] CancellationToken ct)
+        [Authorize]
+        public async Task StreamContent([FromQuery] string message, [EnumeratorCancellation] CancellationToken ct)
         {
             Response.Headers.Append("Content-Type", "text/event-stream");
             Response.Headers.Append("Cache-Control", "no-cache");
             Response.Headers.Append("Connection", "keep-alive");
 
-            var streamingResult = _agentService.GetChatResponse(message, key, ct);
+            var email = Email;
+            var streamingResult = _agentService.GetChatResponse(message, email!, ct);
 
             await foreach (var chunk in streamingResult.WithCancellation(ct))
             {

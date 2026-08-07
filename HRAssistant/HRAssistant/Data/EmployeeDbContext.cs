@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace HRAssistant.Data
+﻿namespace HRAssistant.Data
 {
     public class EmployeeDbContext : DbContext
     {
@@ -10,5 +8,6 @@ namespace HRAssistant.Data
 
         public DbSet<Employee> Employees => Set<Employee>();
         public DbSet<Leaves> Leaves => Set<Leaves>();
+        public DbSet<ManagerEmployee> ManagerEmployee => Set<ManagerEmployee>();
     }
 }

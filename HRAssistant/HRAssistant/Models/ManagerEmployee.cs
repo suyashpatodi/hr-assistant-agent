@@ -2,19 +2,19 @@
 
 namespace HRAssistant.Models
 {
-    public class Leaves
+    public class ManagerEmployee
     {
         public int Id { get; set; }
         public int EmployeeId { get; set; }
-        public LeaveStatus Status { get; set; }
-        public DateTime From { get; set; } = default!;
-        public DateTime To { get; set; } = default!;
-        public int Days { get; set; }
-        public string Reason { get; set; } = default!;
+        public int ManagerId { get; set; }
+        public DateTime ModifiedAt { get; set; }
         public DateTime CreatedAt { get; set; }
 
         [ForeignKey(nameof(EmployeeId))]
         public Employee Employee { get; set; } = default!;
+
+        [ForeignKey(nameof(ManagerId))]
+        public Employee Manager { get; set; } = default!;
 
     }
 }

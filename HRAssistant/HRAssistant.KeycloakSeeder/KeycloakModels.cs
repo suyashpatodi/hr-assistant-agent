@@ -2,9 +2,10 @@
 
 namespace HRAssistant.KeycloakSeeder;
 
-// 1. JSON Seed Models (Matching data.json)
+// JSON Seed Models (Matching data.json)
 public record KeycloakSeedData(
     string Realm,
+    string ClientId,
     List<string> Roles,
     List<UserSeed> Users
 );
@@ -18,11 +19,11 @@ public record UserSeed(
     string Role
 );
 
-// 2. Response / Result Models
+// Response / Result Models
 public record RoleResult(string Name, string Id);
 public record UserResult(string Username, string Id);
 
-// 3. Keycloak REST API Request Payloads
+// Keycloak REST API Request Payloads
 public record CreateRealmRequest(string Realm, bool Enabled);
 
 public record CreateRoleRequest(string Name, string Description);
@@ -42,7 +43,7 @@ public record CredentialPayload(
     bool Temporary
 );
 
-// 4. Internal Keycloak Response DTOs
+// Internal Keycloak Response DTOs
 public record TokenResponse(
     [property: JsonPropertyName("access_token")] string AccessToken
 );

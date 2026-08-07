@@ -1,4 +1,9 @@
-﻿using Microsoft.Extensions.Http.Resilience;
+﻿using HRAssistant.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Http.Resilience;
+using System.Security.Claims;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
@@ -51,8 +56,57 @@ builder.AddOllamaApiClient("ollama-all-minilm").AddEmbeddingGenerator();
 builder.Services.AddInMemoryVectorStoreRecordCollection<string, DocumentChunk>("documents");
 builder.Services.AddScoped<IAgentService, AgentService>();
 builder.Services.AddScoped<IDataService, DataService>();
+builder.Services.AddSingleton<IAuthorizationHandler, AdminAuthorizationHandler>();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+builder.Services.AddAuthentication()
+    .AddKeycloakJwtBearer(
+    serviceName: "keycloak",
+    realm: "hrassistant",
+    configureOptions: options =>
+    {
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+        options.Audience = "account";
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+            {
+                var claimIdentity = context.Principal?.Identity as ClaimsIdentity;
+                var realmAccess = claimIdentity?.FindFirst("realm_access")?.Value;
+
+                if (!string.IsNullOrEmpty(realmAccess) && claimIdentity != null)
+                {
+                    using var doc = JsonDocument.Parse(realmAccess);
+                    if (doc.RootElement.TryGetProperty("roles", out var rolesElement))
+                    {
+                        foreach (var role in rolesElement.EnumerateArray())
+                        {
+                            var roleName = role.GetString();
+                            if (!string.IsNullOrWhiteSpace(roleName))
+                                claimIdentity.AddClaim(new Claim(ClaimTypes.Role, roleName));
+                        }
+                    }
+                }
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminPolicy", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new AdminRequirement());
+    });
+});
 
 var app = builder.Build();
+app.UseExceptionHandler();
+
 app.MapDefaultEndpoints();
 
 if (app.Environment.IsDevelopment())
@@ -62,6 +116,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

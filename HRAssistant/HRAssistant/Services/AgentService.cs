@@ -48,12 +48,12 @@ public class AgentService : IAgentService
             }
             else
             {
-                AddSystemPrompt(history);
+                AddSystemPrompt(history, key);
             }
         }
         else
         {
-            AddSystemPrompt(history);
+            AddSystemPrompt(history, key);
         }
 
         history.AddUserMessage(message);
@@ -95,11 +95,11 @@ public class AgentService : IAgentService
         }
     }
 
-    private static void AddSystemPrompt(ChatHistory history)
+    private static void AddSystemPrompt(ChatHistory history, string key)
     {
-        history.AddSystemMessage("""
-            You are an HR Assistant. Always use tools — never answer from memory.
-            - SqlPlugin: Employee profiles, leave balances and history
+        history.AddSystemMessage($"""
+            You are an HR Assistant. Always use tools — never answer from memory. And you only reply for employee {key}
+            - SqlPlugin: Leave balances and history
             - PolicyPlugin: Search companies policy document to fetch company related information including travel plans, compensation, hierarchy, company goals, ongoing projects and many more.
             - ExecutePlugin: Submit leave applications and send emails. Always confirm with user before executing.
 

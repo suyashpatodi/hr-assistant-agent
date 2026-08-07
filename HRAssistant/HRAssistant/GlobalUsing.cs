@@ -1,5 +1,6 @@
 ﻿global using HRAssistant.Data;
 global using HRAssistant.Helpers;
+global using HRAssistant.Helpers.Enums;
 global using HRAssistant.Models;
 global using HRAssistant.Plugins;
 global using HRAssistant.Services;

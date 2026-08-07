@@ -52,6 +52,10 @@ try
     var realmCreated = await keycloakService.CreateRealm(options.Realm, token);
     if (!realmCreated) return;
 
+    // Create Client
+    var clientCreated = await keycloakService.CreateClientApp(options.ClientId, options.Realm, token);
+    if (!clientCreated) return;
+
     // Create Roles
     List<RoleResult> createdRoles = await keycloakService.CreateRoles(options.Roles, options.Realm, token);
 

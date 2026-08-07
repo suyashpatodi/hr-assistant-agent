@@ -1,5 +1,6 @@
 {
-  "Realm" :  "hrassistant",
+  "ClientId": "hrassistant-app",
+  "Realm": "hrassistant",
   "Roles": [
     "Admin",
     "Manager",
